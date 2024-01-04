@@ -1,6 +1,7 @@
 package com.cherlan.mockinterviewchallenge
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,11 +17,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.cherlan.mockinterviewchallenge.data.model.Country
 import com.cherlan.mockinterviewchallenge.ui.CountryViewModel
 import com.cherlan.mockinterviewchallenge.ui.theme.MockInterviewChallengeTheme
+import com.cherlan.mockinterviewchallenge.utils.Result
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<CountryViewModel>()
@@ -41,12 +44,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-fun String.AddLastName(lastName: String): String{
-    return "$this $lastName"
-}
-
 
 
 @Composable
@@ -74,16 +71,24 @@ fun Country(country: Country) {
 @Composable
 fun Countries(countryViewModel: CountryViewModel) {
 
-    val countries = countryViewModel.countries.collectAsState()
+    val context = LocalContext.current
+    val result = countryViewModel.countries.collectAsState().value
 
 
-        LazyColumn(modifier = Modifier.fillMaxHeight()) {
-            items(countries.) { item ->
-                Country(country = it)
+    when(result){
+        is Result.Loading -> Toast.makeText(context,"Loading",Toast.LENGTH_LONG).show()
+        is Result.Success -> {
+            LazyColumn(modifier = Modifier.fillMaxHeight()) {
+                items(result.countries) { item ->
+                    Country(country = item)
 
-                Text(text = "Country $item")
+                    Text(text = "Country $item")
+                }
             }
         }
+        is Result.Error -> Toast.makeText(context,result.errorMsg,Toast.LENGTH_LONG).show()
+
+    }
 
 }
 
